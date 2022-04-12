@@ -7,13 +7,13 @@ from config import *
 
 intents = discord.Intents.all()
 client = commands.Bot(intents=intents)
-conn = sqlite3.connect('films.db')
+conn = sqlite3.connect('data.db')
 c = conn.cursor()
 
 # ---+== MAIN FUNC'S ==+--- #
 
 def filmChoice(ctx: discord.AutocompleteContext):
-    c.execute("SELECT word FROM data")
+    c.execute("SELECT word FROM films")
     films = c.fetchall()
     list = []
     for film in films:
@@ -21,7 +21,7 @@ def filmChoice(ctx: discord.AutocompleteContext):
     return list
 
 def filmList():
-    c.execute("SELECT word FROM data")
+    c.execute("SELECT word FROM films")
     films = c.fetchall()
     list = []
     for film in films:
@@ -35,7 +35,7 @@ async def on_ready():
     print('Zalogowano jako {}'.format(client.user.name))
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"{botstatus}"))
     print('Ustawiono status.')
-    c.execute("CREATE TABLE IF NOT EXISTS data(word STR, link STR)")
+    c.execute("CREATE TABLE IF NOT EXISTS films(word STR, link STR)")
     conn.commit()
 
 # ----+== DELETE LOG ==+---- #
@@ -47,7 +47,7 @@ async def on_message_delete(message):
     channel = message.guild.get_channel(963146152562262037)
     embed = discord.Embed(
         title=f'`👀` Usunięta wiadomość',
-        description=f'Wiadomość {message.author.mention}: \n> {message.content}',
+        description=f'Wiadomość {message.author.mention} z <#{message.channel.id}>: \n> {message.content}',
         timestamp=datetime.datetime.now(),
         color=0xd62929
     ).set_footer(text=f'{message.author.name}#{message.author.discriminator}', icon_url=message.author.avatar.url)
@@ -69,10 +69,11 @@ async def sugestia(ctx: discord.Interaction, sugestia: Option(str, '🤔 Tu wpis
     await msg.add_reaction('👎')
     threadname = f'Sugestia {ctx.author.name}'
     await msg.create_thread(name=threadname)
+    await ctx.respond(f'\✅ Sugestia została wysłana! \n{msg.jump_url}')
 
 @client.slash_command(guild_ids=[941633571393781770], description='🎥 Wysyła link do wybrań filmu')
 async def films(ctx, film: Option(str, '🤔 Jaki chcesz film?', autocomplete=filmChoice)):
-    c.execute('SELECT * FROM data WHERE word = ?', (film,))
+    c.execute('SELECT * FROM films WHERE word = ?', (film,))
     link = c.fetchone()
     embed = discord.Embed(
         title=f'`🎥` Film {film}',
@@ -87,14 +88,14 @@ async def films(ctx, film: Option(str, '🤔 Jaki chcesz film?', autocomplete=fi
 @client.slash_command(guild_ids=[941633571393781770], description='🎥 Dodaje film do bazy')
 @permissions.has_any_role(adminroles)
 async def dodaj_film(ctx, film: Option(str, 'Fraza która pojawi się do wyboru'), link: Option(str, 'Link do filmu')):
-    c.execute('INSERT INTO data VALUES (?, ?)', (film, link))
+    c.execute('INSERT INTO films VALUES (?, ?)', (film, link))
     conn.commit()
     await ctx.respond(f'Dodano film {film}', ephemeral=True)
 
 @client.slash_command(guild_ids=[941633571393781770], description='🎥 Usuwa film z bazy')
 @permissions.has_any_role(adminroles)
 async def usun_film(ctx, film: Option(str, 'Nazwa filmu (fraza)', autocomplete=filmChoice)):
-    c.execute('DELETE FROM data WHERE word = ?', (film,))
+    c.execute('DELETE FROM films WHERE word = ?', (film,))
     conn.commit()
     await ctx.respond(f'Usunięto film {film}', ephemeral=True)
 
@@ -104,7 +105,7 @@ async def usun_film(ctx, film: Option(str, 'Nazwa filmu (fraza)', autocomplete=f
 async def film(ctx, message):
     for film in filmList():
         if film in message.content:
-            c.execute('SELECT * FROM data WHERE word = ?', (film,))
+            c.execute('SELECT * FROM films WHERE word = ?', (film,))
             link = c.fetchone()
             embed = discord.Embed(
                 title=f'`🎥` Film {film}',
