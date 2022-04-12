@@ -69,7 +69,7 @@ async def sugestia(ctx: discord.Interaction, sugestia: Option(str, '🤔 Tu wpis
     await msg.add_reaction('👎')
     threadname = f'Sugestia {ctx.author.name}'
     await msg.create_thread(name=threadname)
-    await ctx.respond(f'\✅ Sugestia została wysłana! \n{msg.jump_url}')
+    await ctx.respond(f'\✅ Sugestia została wysłana! \n{msg.jump_url}', ephemeral=True)
 
 @client.slash_command(guild_ids=[941633571393781770], description='🎥 Wysyła link do wybrań filmu')
 async def films(ctx, film: Option(str, '🤔 Jaki chcesz film?', autocomplete=filmChoice)):
