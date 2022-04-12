@@ -71,7 +71,7 @@ async def sugestia(ctx: discord.Interaction, sugestia: Option(str, '🤔 Tu wpis
     await msg.create_thread(name=threadname)
     await ctx.respond(f'\✅ Sugestia została wysłana! \n{msg.jump_url}', ephemeral=True)
 
-@client.slash_command(guild_ids=[941633571393781770], description='🎥 Wysyła link do wybrań filmu')
+@client.slash_command(guild_ids=guilds_ids, description='🎥 Wysyła link do wybrań filmu')
 async def films(ctx, film: Option(str, '🤔 Jaki chcesz film?', autocomplete=filmChoice)):
     c.execute('SELECT * FROM films WHERE word = ?', (film,))
     link = c.fetchone()
@@ -85,14 +85,14 @@ async def films(ctx, film: Option(str, '🤔 Jaki chcesz film?', autocomplete=fi
     embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{code}/hqdefault.jpg')
     await ctx.respond(embed=embed)
 
-@client.slash_command(guild_ids=[941633571393781770], description='🎥 Dodaje film do bazy')
+@client.slash_command(guild_ids=guilds_ids, description='🎥 Dodaje film do bazy')
 @permissions.has_any_role(adminroles)
 async def dodaj_film(ctx, film: Option(str, 'Fraza która pojawi się do wyboru'), link: Option(str, 'Link do filmu')):
     c.execute('INSERT INTO films VALUES (?, ?)', (film, link))
     conn.commit()
     await ctx.respond(f'Dodano film {film}', ephemeral=True)
 
-@client.slash_command(guild_ids=[941633571393781770], description='🎥 Usuwa film z bazy')
+@client.slash_command(guild_ids=guilds_ids, description='🎥 Usuwa film z bazy')
 @permissions.has_any_role(adminroles)
 async def usun_film(ctx, film: Option(str, 'Nazwa filmu (fraza)', autocomplete=filmChoice)):
     c.execute('DELETE FROM films WHERE word = ?', (film,))
@@ -101,7 +101,7 @@ async def usun_film(ctx, film: Option(str, 'Nazwa filmu (fraza)', autocomplete=f
 
 # ---+=== MSG COMMAND ===+--- #
 
-@client.message_command(guild_ids=[941633571393781770], description='🎥 Wysyła link do wybrań filmu')
+@client.message_command(guild_ids=guilds_ids, description='🎥 Wysyła link do wybrań filmu')
 async def film(ctx, message):
     for film in filmList():
         if film in message.content:
