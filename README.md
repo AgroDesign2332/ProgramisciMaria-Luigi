@@ -8,5 +8,4 @@
  py-cord (https://pycord.dev/)
  
 # Owners
- skayus - Developer
- mario1842 - Manager
+ skayus - Developer || mario1842 - Manager
